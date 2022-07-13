@@ -6,7 +6,31 @@ services:
     volumes:
       - ./public:/var/www/public
       - ./nginx/conf.d:/etc/nginx/conf.d/
+      - ./certbot-etc:/etc/letsencrypt
+      - ./certbot-var:/var/www/certbot
+#      - dhparam:/etc/ssl/certs
     restart: unless-stopped
     ports:
       - "80:80"
-    container_name: simple_nginx_html
+    container_name: nginx
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - public:/var/www/public
+    depends_on:
+      - nginx
+    command: certonly --webroot --webroot-path=/var/www/public --email certificatesmail@yandex.ru --agree-tos --no-eff-email --staging -d itonline-test.ru  -d www.itonline-test.ru
+
+volumes:
+  certbot-etc:
+  certbot-var:
+  public:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/test/projects/docker_certbot_for_html
+      o: bind
